@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ตามหาปริศนาธรรม</title>
+<style>
+  :root {
+    --bg: #f4efe6;
+    --paper: #fbf7ed;
+    --ink: #2d2a26;
+    --soft-ink: #6e665c;
+    --sage: #7a8c6e;
+    --sage-dark: #4d5c44;
+    --gold: #b08a3e;
+    --gold-light: #d4b870;
+    --border: #d8cfbf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Sukhumvit Set", "Noto Sans Thai", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 28px 22px 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- INTRO SCREEN ---------- */
+  #introScreen {
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px 0;
+  }
+  .intro-symbol {
+    font-size: 64px;
+    color: var(--gold);
+    margin-bottom: 18px;
+    line-height: 1;
+  }
+  .intro-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--sage-dark);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .intro-subtitle {
+    font-size: 16px;
+    color: var(--soft-ink);
+    margin-bottom: 32px;
+  }
+  .intro-text {
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    text-align: left;
+    background: var(--paper);
+    padding: 18px 22px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+  .intro-text strong { color: var(--sage-dark); }
+  .start-btn {
+    margin-top: 24px;
+    background: var(--sage);
+    color: white;
+    border: none;
+    padding: 18px 40px;
+    font-size: 19px;
+    font-family: inherit;
+    border-radius: 100px;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(122,140,110,0.3);
+    transition: transform 0.15s;
+  }
+  .start-btn:active { transform: scale(0.97); }
+
+  /* ---------- GAME SCREEN ---------- */
+  #gameScreen { display: none; flex: 1; flex-direction: column; }
+
+  .progress-bar {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 14px 22px;
+    margin-bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .progress-text {
+    font-size: 15px;
+    color: var(--soft-ink);
+  }
+  .progress-count {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sage-dark);
+  }
+
+  .instruction {
+    text-align: center;
+    color: var(--soft-ink);
+    font-size: 16px;
+    margin-bottom: 24px;
+    padding: 0 8px;
+  }
+
+  .mic-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    padding: 30px 0;
+  }
+  .mic-button {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: var(--sage);
+    color: white;
+    border: none;
+    font-size: 80px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(122,140,110,0.35);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+  .mic-button:active { transform: scale(0.95); }
+  .mic-button.listening {
+    background: var(--gold);
+    box-shadow: 0 0 0 12px rgba(176,138,62,0.2),
+                0 0 0 28px rgba(176,138,62,0.1);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 12px rgba(176,138,62,0.2), 0 0 0 28px rgba(176,138,62,0.1); }
+    50% { box-shadow: 0 0 0 20px rgba(176,138,62,0.15), 0 0 0 40px rgba(176,138,62,0.05); }
+  }
+  .mic-label {
+    margin-top: 22px;
+    font-size: 17px;
+    color: var(--sage-dark);
+    font-weight: 600;
+    min-height: 26px;
+  }
+
+  .heard-text {
+    margin-top: 26px;
+    padding: 16px 22px;
+    background: var(--paper);
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    text-align: center;
+    color: var(--ink);
+    font-size: 18px;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+  .heard-text.empty { color: var(--soft-ink); font-style: italic; font-size: 15px; }
+  .heard-text.match { background: #e9f0e3; border-color: var(--sage); border-style: solid; }
+  .heard-text.nomatch { background: #f5ebe0; border-color: #c4a87a; border-style: solid; }
+
+  .feedback {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--soft-ink);
+    min-height: 22px;
+  }
+
+  .footer-actions {
+    text-align: center;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .small-link {
+    color: var(--soft-ink);
+    font-size: 13px;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 4px 8px;
+  }
+
+  /* ---------- REVEAL MODAL ---------- */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(45,42,38,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadein 0.3s;
+  }
+  .modal-backdrop.show { display: flex; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--paper);
+    border-radius: 18px;
+    padding: 32px 26px;
+    max-width: 460px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+    border: 2px solid var(--gold);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: slideup 0.4s;
+  }
+  @keyframes slideup {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-symbol {
+    font-size: 48px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .modal-label {
+    font-size: 13px;
+    color: var(--soft-ink);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .modal-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--sage-dark);
+    margin-bottom: 18px;
+  }
+  .modal-image {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin: 0 auto 20px;
+    display: block;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
+  .modal-image[hidden] { display: none; }
+  .modal-meaning {
+    font-size: 17px;
+    color: var(--ink);
+    line-height: 1.9;
+    text-align: left;
+    background: white;
+    padding: 20px 22px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .modal-close {
+    background: var(--sage-dark);
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    font-size: 17px;
+    font-family: inherit;
+    border-radius: 100px;
+    cursor: pointer;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+  }
+  .modal-close.ready {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .modal-close:active { transform: scale(0.96); }
+
+  /* ---------- CONTEMPLATION GATE ---------- */
+  .contemplation {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transition: opacity 0.5s;
+  }
+  .contemplation.done {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  .contemplation-text {
+    font-size: 14px;
+    color: var(--soft-ink);
+    letter-spacing: 1px;
+    font-style: italic;
+  }
+  .contemplation-bar {
+    width: 100%;
+    max-width: 240px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .contemplation-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-light), var(--gold));
+    width: 0%;
+    border-radius: 100px;
+    transition: width 0.5s linear;
+  }
+
+  /* ---------- REWARD SCREEN ---------- */
+  .reward-content {
+    text-align: center;
+    padding: 20px 10px;
+  }
+  .reward-symbol {
+    font-size: 80px;
+    margin-bottom: 16px;
+  }
+  .reward-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .reward-text {
+    font-size: 17px;
+    color: var(--ink);
+    line-height: 1.9;
+    margin-bottom: 24px;
+  }
+
+  /* ---------- ERROR BANNER ---------- */
+  .error-banner {
+    background: #fde8d6;
+    border: 1px solid #d4a373;
+    color: #6b4423;
+    padding: 12px 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ================ INTRO SCREEN ================ -->
+  <div id="introScreen">
+    <div class="intro-symbol">☸</div>
+    <div class="intro-title">ตามหาปริศนาธรรม</div>
+    <div class="intro-subtitle">Dharma Riddle Hunt</div>
+
+    <div class="intro-text">
+      <p>เดินช้าๆ ในสวน พิจารณาสิ่งที่เห็น</p>
+      <p style="margin-top:10px">เมื่อพบ "สิ่งที่ดูเหมือนปริศนาธรรม" ให้กดปุ่มไมโครโฟน แล้ว<strong>พูดสิ่งที่คุณคิด</strong>ออกมา</p>
+      <p style="margin-top:10px">หากตรงกับปริศนาที่บันทึกไว้ คำเฉลยจะปรากฏให้คุณอ่าน</p>
+    </div>
+
+    <button class="start-btn" onclick="startGame()">เริ่มพิจารณา</button>
+  </div>
+
+  <!-- ================ GAME SCREEN ================ -->
+  <div id="gameScreen">
+    <div id="errorBanner" class="error-banner" style="display:none"></div>
+
+    <div class="progress-bar">
+      <span class="progress-text">ปริศนาที่พบ</span>
+      <span class="progress-count"><span id="foundCount">0</span> / <span id="totalCount">2</span></span>
+    </div>
+
+    <div class="instruction">
+      พิจารณาสิ่งรอบตัว แล้วพูดออกมา
+    </div>
+
+    <div class="mic-wrap">
+      <button id="micBtn" class="mic-button" onclick="toggleListen()">🎤</button>
+      <div id="micLabel" class="mic-label">แตะเพื่อพูด</div>
+    </div>
+
+    <div id="heardText" class="heard-text empty">
+      เสียงที่คุณพูดจะปรากฏที่นี่
+    </div>
+    <div id="feedback" class="feedback"></div>
+
+    <div class="footer-actions">
+      <button class="small-link" onclick="resetGame()">เริ่มใหม่ทั้งหมด</button>
+    </div>
+  </div>
+
+  <!-- ================ REVEAL MODAL ================ -->
+  <div id="revealModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-symbol">✦</div>
+      <div class="modal-label">ปริศนาที่ค้นพบ</div>
+      <div id="modalTitle" class="modal-title"></div>
+      <img id="modalImage" class="modal-image" alt="" hidden>
+      <div id="modalMeaning" class="modal-meaning"></div>
+      <div id="contemplation" class="contemplation">
+        <div class="contemplation-text">หายใจช้าๆ พิจารณาความหมาย</div>
+        <div class="contemplation-bar"><div id="contemplationFill" class="contemplation-fill"></div></div>
+      </div>
+      <button id="modalCloseBtn" class="modal-close" onclick="closeModal()">น้อมรับ</button>
+    </div>
+  </div>
+
+  <!-- ================ REWARD MODAL ================ -->
+  <div id="rewardModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="reward-content">
+        <div class="reward-symbol">🪷</div>
+        <div class="reward-title">ครบจำนวนแล้ว</div>
+        <div class="reward-text">
+          คุณได้พิจารณาปริศนาธรรม<br>
+          ครบจำนวนที่ตั้งไว้<br><br>
+          ขอให้สิ่งที่ได้พิจารณา<br>
+          เป็นแสงสว่างนำทางใจ<br><br>
+          <span style="font-size:14px;color:var(--soft-ink)">เดินต่อก็ได้ ยังมีปริศนาอื่นรออยู่</span>
+        </div>
+        <button class="modal-close ready" onclick="document.getElementById('rewardModal').classList.remove('show')">สาธุ</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =============== RIDDLE DATA ===============
+const RIDDLES = [
+  {
+    id: 1,
+    name: "นกในกรงที่เปิดอยู่",
+    image: "photos/01-cage.jpg",
+    keywords: [
+      "กรง", "นก", "บิน", "ปีก",
+      "อิสร", "อิสรภาพ", "เสรี", "หลุดพ้น",
+      "ขัง", "กักขัง", "ติด", "กลัว",
+      "ออกเอง", "ออกมา", "ไม่ออก", "ประตู",
+      "กฎเกณฑ์", "สังคม", "คาดหวัง"
+    ],
+    meaning: "กรงนกที่เปิดอยู่ เปรียบเหมือนอิสรภาพของจิตใจ\n\nแท้จริงแล้ว ประตูแห่งความหลุดพ้นไม่เคยถูกปิดเลย แต่เรามักขังตัวเองไว้ด้วยความกลัว ความยึดติด และความคาดหวังต่าง ๆ จนลืมไปว่า เราสามารถบินออกมาได้ตั้งนานแล้ว\n\nบางครั้ง สิ่งที่จองจำเราไว้ ไม่ใช่กรง แต่คือใจที่ไม่กล้าปล่อยวาง"
+  },
+  {
+    id: 2,
+    name: "ขอนไม้ลอยน้ำ",
+    image: "photos/02-log.jpg",
+    keywords: [
+      "ขอน", "ขอนไม้", "ไม้", "ลอย", "ลอยน้ำ",
+      "ทะเล", "ถึงฝั่ง", "ฝั่ง", "แม่น้ำ",
+      "ซ้าย", "ขวา", "ตรงกลาง", "สายกลาง", "ทางสายกลาง", "มัชฌิมา",
+      "รัก", "เกลียด", "อารมณ์", "สองขั้ว",
+      "จม", "เกียจคร้าน", "ขี้เกียจ",
+      "นิพพาน", "สงบ", "ติดฝั่ง"
+    ],
+    meaning: "พระพุทธองค์ทรงเปรียบชีวิตเหมือนขอนไม้ที่ลอยไปตามสายน้ำ หากขอนไม้ไม่ติดฝั่งซ้าย ไม่ติดฝั่งขวา ไม่จมลงกลางน้ำ และไม่ถูกใครจับไว้ มันย่อมลอยไปถึงทะเลได้ในที่สุด\n\nฝั่งซ้ายและฝั่งขวา เปรียบเหมือนความรักและความเกลียด ความยินดีและความยินร้าย ที่คอยดึงใจเราไว้ไม่ให้เป็นอิสระ\n\nเมื่อใดที่เรารู้จักวางใจเป็นกลาง ไม่ปล่อยให้ชีวิตถูกพัดไปตามอารมณ์ทั้งสองด้าน ใจจะค่อย ๆ เบา และลอยไปสู่ความสงบได้เองตามธรรมชาติ"
+  },
+  {
+    id: 3,
+    name: "ระฆังแขวนพร้อมโซ่ดึง",
+    image: "photos/03-bell.jpg",
+    keywords: [
+      "ระฆัง", "เสียง", "ดึง", "โซ่", "เชือก", "กระดิ่ง", "ลูกกระดิ่ง",
+      "เหตุ", "ปัจจัย", "เหตุปัจจัย", "ปรุงแต่ง", "สังขาร",
+      "อายตนะ", "ตา", "หู", "จมูก", "ลิ้น", "กาย",
+      "จิต", "จิตใจ", "อนัตตา", "ไม่ใช่ตัวตน", "ไม่มีตัวตน",
+      "เกิดดับ", "เกิดขึ้น", "ดับไป", "ตั้งอยู่",
+      "ไตรลักษณ์", "ลวงตา", "สืบต่อ", "เที่ยง", "ไม่เที่ยง"
+    ],
+    meaning: "เสียงระฆังไม่ได้มีอยู่ก่อนถูกตี และไม่ได้หายไปไหนหลังเสียงดับ\n\nมันเพียงเกิดขึ้นเมื่อเหตุและปัจจัยมาประชุมกัน และดับไปเมื่อปัจจัยสิ้นสุด\n\nจิตใจของเราก็เช่นกัน ความสุข ความทุกข์ ความโกรธ หรือความฟุ้งซ่าน ล้วนเกิดขึ้นเพราะมีสิ่งมากระทบ แล้วก็ดับไปตามเหตุปัจจัย\n\nแต่เพราะทุกอย่างเกิดดับต่อเนื่องอย่างรวดเร็ว เราจึงเผลอคิดว่ามี \u2018ตัวเรา\u2019 คอยเป็นเจ้าของทุกความรู้สึกอยู่ตลอดเวลา\n\nแท้จริงแล้ว ทุกสภาวะในใจก็เหมือนเสียงระฆัง เกิดขึ้น ตั้งอยู่ แล้วดับไปเป็นธรรมดา"
+  },
+  {
+    id: 4,
+    name: "หินทับหญ้า",
+    image: "photos/04-rock.jpg",
+    keywords: [
+      "หิน", "ก้อนหิน", "ทับ", "หญ้า",
+      "สมาธิ", "ฌาน", "นั่งสมาธิ",
+      "กิเลส", "โลภ", "โกรธ", "หลง",
+      "ข่ม", "ข่มไว้", "กด", "กดไว้", "สงบชั่วคราว",
+      "วิกขัมภน", "วิกขัมภนวิมุตติ",
+      "วิปัสสนา", "ปัญญา", "ถอนราก", "ถอน", "ราก",
+      "งอกใหม่", "กลับมา", "ชั่วคราว", "ถาวร"
+    ],
+    meaning: "หญ้าที่ถูกก้อนหินทับไว้ ดูเหมือนตายแล้ว แต่เมื่อยกหินออก ได้แสงและน้ำอีกครั้ง มันก็กลับมาเติบโตเหมือนเดิม\n\nจิตใจของเราก็เช่นกัน เมื่อมีสมาธิ ใจจะสงบ เหมือนกิเลสถูกกดทับไว้ชั่วคราว\n\nแต่เมื่อออกมาเจอสิ่งกระทบ ความโกรธ ความอยาก ความยึดติด ก็พร้อมจะงอกขึ้นมาอีก\n\nเพราะสมาธิช่วยให้กิเลสสงบลง แต่ปัญญาเท่านั้น ที่ช่วยให้เราเห็นรากของมัน และค่อย ๆ ปล่อยวางได้จริง\n\nความสงบที่แท้ จึงไม่ใช่การกดทับใจไว้ แต่คือการเข้าใจจนใจไม่ต้องดิ้นอีกต่อไป"
+  },
+  {
+    id: 5,
+    name: "ไม้กวาดกับใบไม้แห้ง",
+    image: "photos/05-broom.jpg",
+    keywords: [
+      "ไม้กวาด", "กวาด", "ด้าม",
+      "ใบไม้", "ใบไม้แห้ง", "ใบ", "ร่วง", "หล่น",
+      "สติ", "ระลึก", "รู้ตัว",
+      "ลมหายใจ", "หายใจ", "อานาปานสติ", "อานาปาน",
+      "กาย", "ฐานกาย", "ปัจจุบัน", "ขณะปัจจุบัน",
+      "ปรุงแต่ง", "ความคิด", "ฟุ้งซ่าน",
+      "กลับมา", "จับด้าม", "เครื่องอยู่"
+    ],
+    meaning: "ใบไม้แห้งที่ร่วงหล่นลงมา เปรียบเหมือนกิเลสตัณหา ความโกรธ ความโลภ ความฟุ้งซ่าน ที่คอยตกลงมากระทบลานใจเราอยู่เสมอ เป็นเรื่องธรรมดาของชีวิตที่ไม่มีใครหลีกพ้นได้\n\nไม้กวาด เปรียบเหมือนสติที่กลับมาอยู่กับกายและลมหายใจ ทุกครั้งที่ใจว้าวุ่น ก็เหมือนเราเอื้อมมือไปจับไม้กวาด แล้วค่อย ๆ กวาดใบไม้ตรงหน้าออกไปทีละน้อย\n\nกิเลสไม่ได้ดับเพราะการผลักไสหรือเกลียดมัน แต่มันดับเอง เมื่อเราไม่เผลอเอาความคิดไปเลี้ยงมันต่อ\n\nเมื่อใจกลับมาอยู่กับลมหายใจในปัจจุบันขณะ ความฟุ้งซ่านก็จะค่อย ๆ จางหาย เหมือนลานที่ถูกกวาดจนสะอาดอีกครั้ง\n\nสุดท้ายเราจะเห็นว่า ความสงบไม่ได้เกิดจากการไม่มีใบไม้ร่วง แต่เกิดจากการไม่ลืมกลับมากวาดใจของตัวเอง"
+  },
+  {
+    id: 6,
+    name: "ตุ๊กตาปูน",
+    image: "photos/06-dolls.jpg",
+    keywords: [
+      "ตุ๊กตา", "ปูน", "ตุ๊กตาปูน", "รูปปั้น",
+      "สันตติ", "สืบต่อ", "ต่อเนื่อง",
+      "ลวงตา", "ภาพลวง", "มายา",
+      "อนิจจัง", "ไม่เที่ยง", "เกิดดับ", "เกิดขึ้น", "ดับไป",
+      "ก๊อปปี้", "ปั๊ม", "พิมพ์", "ดวงใหม่",
+      "จิต", "จิตดวงใหม่", "จิตเก่า",
+      "ถาวร", "ยั่งยืน", "เหมือนเดิม",
+      "โกรธ", "อารมณ์", "ครุ่นคิด"
+    ],
+    meaning: "ตุ๊กตาปูนในภาพนี้ ดูเหมือนนิ่งและคงเดิม แต่ความจริงแล้ว มันกำลังเสื่อมสลายอยู่ทุกวินาที เพียงแต่การเปลี่ยนแปลงนั้นละเอียดเกินกว่าตาเราจะมองเห็น\n\nจิตใจของเราก็เช่นกัน ความโกรธ ความเศร้า หรือความทุกข์ ไม่ได้คงอยู่ต่อเนื่องอย่างที่เราคิด มันดับไปทุกขณะ\n\nแต่เพราะจิตเผลอหยิบความคิดเดิมมาสร้างซ้ำ เราจึงรู้สึกเหมือนทุกข์อยู่นานไม่จบสิ้น\n\nเมื่อใดที่มีสติกลับมาอยู่กับลมหายใจ จิตในปัจจุบันจะหยุดการฉายซ้ำของความทุกข์เก่า แล้วใจจะค่อย ๆ กลับคืนสู่ความสงบอีกครั้ง"
+  },
+  {
+    id: 7,
+    name: "อ่างน้ำพุ",
+    image: "photos/07-fountain.jpg",
+    keywords: [
+      "น้ำพุ", "น้ำ", "พุ่ง", "พุ่งขึ้น", "อ่าง", "อ่างน้ำ",
+      "ตก", "ตกลง", "ลงมา", "แรงดึงดูด", "แรงโน้มถ่วง",
+      "ปั๊ม", "ปั๊มน้ำ", "เครื่องปั๊ม",
+      "สังขาร", "ปรุงแต่ง", "ความคิด",
+      "ผัสสะ", "กระทบ",
+      "อารมณ์", "ความรู้สึก", "ฟุ้ง", "ทุกข์",
+      "ปล่อยวาง", "วาง", "ปล่อย", "ดับเอง",
+      "เกิดดับ", "ขึ้นลง", "ขึ้น", "ลง"
+    ],
+    meaning: "น้ำที่พุ่งขึ้นสูง สุดท้ายก็ต้องร่วงกลับลงมาเสมอ ไม่มีหยดใดค้างอยู่บนฟ้าได้ตลอดไป\n\nอารมณ์ในใจเราก็เช่นกัน ไม่ว่าจะเป็นความโกรธ ความโลภ ความฟุ้งซ่าน หรือแม้แต่ความสุข ล้วนพุ่งขึ้นมาเพียงชั่วคราว แล้วก็ดับลงตามธรรมชาติ\n\nแต่ที่เรารู้สึกทุกข์ยาวนาน ไม่ใช่เพราะอารมณ์เดิมยังค้างอยู่ แต่เพราะใจยังคอย \u2018ปั๊ม\u2019 ความคิดเดิมขึ้นมาซ้ำ ๆ ไม่ยอมหยุด\n\nเมื่อใดที่มีสติกลับมาอยู่กับลมหายใจ หยุดเติมเชื้อให้ความคิดปรุงแต่ง อารมณ์ที่กำลังพลุ่งพล่านก็จะค่อย ๆ ร่วงกลับสู่ความสงบเอง"
+  },
+  {
+    id: 8,
+    name: "กำแพงก้อนหิน",
+    image: "photos/08-wall.jpg",
+    keywords: [
+      "กำแพง", "หิน", "ก้อนหิน", "กำแพงหิน",
+      "ทาง", "ทางเดิน", "ปิด", "ขวาง", "ขัง",
+      "ประคอง", "ประคองทาง", "จัดรูป", "เส้นทาง",
+      "ทุกข์", "ความทุกข์", "ความเกลียด", "เกลียด",
+      "ปัญญา", "เข้าใจ", "มอง", "มุมมอง",
+      "อุปสรรค", "ขีดจำกัด"
+    ],
+    meaning: "กำแพงหินไม่ได้ปิดทาง แต่มัน \u2018ประคองทาง\u2019\n\nมันไม่ได้สร้างขึ้นเพื่อขัง แต่สร้างขึ้นเพื่อให้ทางเดินชัดขึ้น\n\nเหมือนความทุกข์ในชีวิต ถ้าเรามองด้วยความเกลียด มันคือกำแพงขวางเรา\n\nแต่ถ้ามองด้วยปัญญา มันคือสิ่งที่จัดรูปทางเดินของชีวิต"
+  },
+  {
+    id: 9,
+    name: "ตะเกียงเปล่า",
+    image: "photos/09-lamp.jpg",
+    keywords: [
+      "ตะเกียง", "ไฟ", "เปลว", "เปลวไฟ", "ตะเกียงเปล่า",
+      "ภาชนะ", "ว่าง", "ว่างเปล่า", "เปล่า",
+      "สติ", "ไร้สติ", "ขาดสติ",
+      "อารมณ์", "พัดพา", "ถูกพัด", "ลอย",
+      "ปัญญา", "สว่าง", "มองเห็น", "เห็นทาง",
+      "ดูแล", "ใจ", "จิต"
+    ],
+    meaning: "ตะเกียงไฟที่ไร้เปลวไฟ ก็เป็นเพียงภาชนะว่างเปล่า\n\nคนที่ไร้สติ ก็เป็นเพียงผู้ถูกอารมณ์พัดพา\n\nจงดูแลเปลวไฟในใจให้ดี เพราะเมื่อสติสว่าง ปัญญาย่อมมองเห็นทาง"
+  },
+  {
+    id: 10,
+    name: "บ่อน้ำ",
+    image: "photos/10-well.jpg",
+    keywords: [
+      "บ่อ", "บ่อน้ำ", "น้ำ", "ภาชนะ", "โอ่ง", "ครก",
+      "ว่าง", "ว่างเปล่า", "เปล่า", "ความว่าง",
+      "รองรับ", "รับ", "เติม", "เต็ม",
+      "ความคิด", "ความเชื่อ", "ความเห็น", "ตนเอง",
+      "ยึดมั่น", "ยึด", "ปล่อย", "วาง",
+      "ปัญญา", "ความจริง", "พื้นที่", "เกิดขึ้น",
+      "ปรากฏ", "เข้ามา"
+    ],
+    meaning: "บ่อน้ำที่ว่างเปล่า ดูเหมือนไม่มีอะไรอยู่ภายใน แต่เพราะความว่างนั้นเอง มันจึงพร้อมรองรับน้ำใหม่ได้เสมอ\n\nจิตใจของเราก็เช่นกัน เมื่อเต็มไปด้วยความคิด ความเชื่อ และความเห็นของตนเอง ความจริงย่อมไม่มีที่ปรากฏ\n\nแต่เมื่อใจว่างจากการยึดมั่น ปัญญาก็มีพื้นที่เกิดขึ้น\n\nบางครั้ง ความว่างไม่ได้หมายถึงการไม่มีอะไร แต่หมายถึงการมีพื้นที่พอสำหรับความจริงที่จะเข้ามา"
+  },
+  {
+    id: 11,
+    name: "ดอกกุหลาบบนกำแพง",
+    image: "photos/11-rose.jpg",
+    keywords: [
+      "กุหลาบ", "ดอก", "ดอกกุหลาบ", "ดอกไม้",
+      "กำแพง", "บนกำแพง", "วาด", "ภาพวาด", "ปูน",
+      "เหี่ยว", "เหี่ยวเฉา", "ผลิบาน", "บาน",
+      "แดด", "ฝน", "เติบโต", "ร่วง", "ร่วงโรย",
+      "ชีวิต", "ไม่มีชีวิต", "ไร้ชีวิต",
+      "เปลี่ยนแปลง", "ความเปลี่ยนแปลง", "หนี", "ยอมรับ",
+      "งดงาม", "สัมผัส", "แท้จริง"
+    ],
+    meaning: "กุหลาบบนกำแพงไม่เคยเหี่ยวเฉา แต่ก็ไม่เคยผลิบาน\n\nมันไม่เคยเจอแดด ไม่เคยเจอฝน ไม่เคยเติบโต และไม่เคยร่วงโรย\n\nเพราะสิ่งที่ไม่มีชีวิต ย่อมไม่ต้องเผชิญความเปลี่ยนแปลง แต่ก็ไม่เคยสัมผัสความงดงามของการมีชีวิตเช่นกัน\n\nชีวิตที่แท้จริง จึงไม่ใช่การหนีความเปลี่ยนแปลง แต่คือการยอมรับการผลิบานและการร่วงโรยไปพร้อมกัน"
+  }
+];
+
+const STORAGE_KEY = 'dharmaRiddle_v4';
+
+// ระยะเวลาพิจารณาขั้นต่ำ (วินาที) — ปุ่ม "น้อมรับ" จะปรากฏหลังเวลานี้
+// เพื่อให้ผู้เล่นได้อ่านและพิจารณาความหมายก่อนปิด
+// คำนวณตามความยาวข้อความ: ขั้นต่ำ 12 วินาที สูงสุด 25 วินาที
+const MIN_CONTEMPLATION_SEC = 12;
+const MAX_CONTEMPLATION_SEC = 25;
+const CHARS_PER_SECOND = 18;  // ความเร็วอ่านโดยประมาณ (ตัวอักษรไทยต่อวินาที)
+
+// ========== ระบบสุ่มชุดปริศนาต่อผู้เล่น ==========
+// ผู้เล่นแต่ละคนจะได้รับ "ชุดปริศนา" คนละชุด ป้องกันการบอกคำตอบกัน
+//
+// MAX_ACTIVE_PER_PLAYER = สุ่มเปิดสูงสุดกี่ปริศนาต่อผู้เล่น 1 คน
+//   ถ้ามีปริศนาทั้งหมดน้อยกว่านี้ จะเปิดทั้งหมด
+//
+// REQUIRED_TO_PASS = ต้องค้นพบกี่ปริศนา จึงจะถือว่า "ผ่าน" และได้รางวัล
+//   (ผู้เล่นยังเดินต่อหาเพิ่มได้หลังผ่าน — เป็นโบนัส)
+const MAX_ACTIVE_PER_PLAYER = 10;
+const REQUIRED_TO_PASS = 5;
+
+// =============== STATE ===============
+let collected = [];
+let activeIds = [];      // ชุดปริศนาที่ผู้เล่นคนนี้ได้รับ (สุ่ม)
+let rewardShown = false; // ได้แสดงรางวัล (ครบ 5) ไปแล้วหรือยัง
+let recognition = null;
+let isListening = false;
+let contemplationReady = false;
+let contemplationTimer = null;
+
+// =============== INIT ===============
+function initActiveIds() {
+  // สุ่มชุดปริศนาให้ผู้เล่นคนนี้ — สูงสุด MAX_ACTIVE_PER_PLAYER
+  const allIds = RIDDLES.map(r => r.id);
+  const targetCount = Math.min(allIds.length, MAX_ACTIVE_PER_PLAYER);
+  if (allIds.length <= targetCount) {
+    activeIds = allIds.slice();
+    return;
+  }
+  // Fisher-Yates shuffle
+  const shuffled = allIds.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  activeIds = shuffled.slice(0, targetCount).sort((a,b) => a-b);
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      collected = saved.collected || [];
+      activeIds = saved.activeIds || [];
+      rewardShown = !!saved.rewardShown;
+    }
+    if (!activeIds || activeIds.length === 0) {
+      initActiveIds();
+    }
+  } catch(e) {
+    collected = [];
+    rewardShown = false;
+    initActiveIds();
+  }
+}
+function saveProgress() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({collected, activeIds, rewardShown}));
+  } catch(e) {}
+}
+function updateProgress() {
+  // แสดงเป็น "X / เป้าหมาย (5)" — ไม่แสดงขนาดของพูล (10) เพื่อไม่ให้เป็นแรงจูงใจให้ "เก็บให้ครบ"
+  const target = Math.min(REQUIRED_TO_PASS, activeIds.length);
+  document.getElementById('foundCount').textContent = collected.length;
+  document.getElementById('totalCount').textContent = target;
+}
+
+// =============== SCREEN CONTROL ===============
+function startGame() {
+  document.getElementById('introScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
+  loadProgress();
+  updateProgress();
+  checkSpeechSupport();
+}
+
+function resetGame() {
+  if (!confirm('ต้องการเริ่มใหม่ทั้งหมด? ปริศนาที่พบจะถูกลบ และจะได้ชุดปริศนาใหม่')) return;
+  collected = [];
+  rewardShown = false;
+  initActiveIds();  // สุ่มชุดใหม่ — ผู้เล่นจะได้รับปริศนาคนละชุด
+  saveProgress();
+  updateProgress();
+  setHeard('เสียงที่คุณพูดจะปรากฏที่นี่', 'empty');
+  setFeedback('');
+}
+
+// =============== SPEECH RECOGNITION ===============
+function checkSpeechSupport() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    showError('เบราว์เซอร์ของคุณไม่รองรับการฟังเสียง — แนะนำให้ใช้ Chrome บนมือถือ Android');
+    document.getElementById('micBtn').disabled = true;
+    return false;
+  }
+  return true;
+}
+
+function toggleListen() {
+  if (isListening) { stopListen(); return; }
+  startListen();
+}
+
+function startListen() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+
+  recognition = new SR();
+  recognition.lang = 'th-TH';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
+
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('micBtn').classList.add('listening');
+    document.getElementById('micLabel').textContent = 'กำลังฟัง...';
+    setHeard('กำลังฟัง...', 'empty');
+    setFeedback('');
+  };
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    let final = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) final += transcript;
+      else interim += transcript;
+    }
+    if (interim) setHeard(interim, 'empty');
+    if (final) processSpeech(final, event.results);
+  };
+
+  recognition.onerror = (event) => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    document.getElementById('micLabel').textContent = 'แตะเพื่อพูด';
+    if (event.error === 'not-allowed') {
+      showError('กรุณาอนุญาตให้เกมใช้ไมโครโฟน');
+    } else if (event.error === 'no-speech') {
+      setFeedback('ไม่ได้ยินเสียง ลองพูดอีกครั้ง');
+    } else if (event.error === 'network') {
+      setFeedback('ต้องใช้อินเทอร์เน็ตเพื่อฟังเสียง');
+    } else {
+      setFeedback('เกิดข้อผิดพลาด: ' + event.error);
+    }
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    document.getElementById('micLabel').textContent = 'แตะเพื่อพูด';
+  };
+
+  try { recognition.start(); }
+  catch(e) { setFeedback('ไม่สามารถเริ่มฟังเสียง'); }
+}
+
+function stopListen() {
+  if (recognition) try { recognition.stop(); } catch(e) {}
+}
+
+// =============== MATCHING LOGIC ===============
+function processSpeech(text, allResults) {
+  // gather all alternatives from final results for broader matching
+  let alternatives = [text];
+  if (allResults) {
+    for (let i = 0; i < allResults.length; i++) {
+      if (allResults[i].isFinal) {
+        for (let j = 0; j < allResults[i].length; j++) {
+          alternatives.push(allResults[i][j].transcript);
+        }
+      }
+    }
+  }
+  const combined = alternatives.join(' ').toLowerCase();
+
+  // find best matching riddle — เฉพาะปริศนาในชุดของผู้เล่นนี้
+  let bestMatch = null;
+  let bestScore = 0;
+  for (const r of RIDDLES) {
+    if (!activeIds.includes(r.id)) continue;  // ข้ามปริศนานอกชุด
+    let score = 0;
+    for (const kw of r.keywords) {
+      if (combined.includes(kw.toLowerCase())) score++;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = r;
+    }
+  }
+
+  if (bestMatch && bestScore > 0) {
+    if (collected.includes(bestMatch.id)) {
+      setHeard(text, 'match');
+      setFeedback('ปริศนานี้คุณเคยค้นพบแล้ว');
+    } else {
+      collected.push(bestMatch.id);
+      saveProgress();
+      updateProgress();
+      setHeard(text, 'match');
+      setFeedback('');
+      setTimeout(() => showReveal(bestMatch), 500);
+    }
+  } else {
+    setHeard(text, 'nomatch');
+    setFeedback('ยังไม่ตรงกับปริศนาใด ลองพิจารณาในมุมใหม่');
+  }
+}
+
+// =============== UI HELPERS ===============
+function setHeard(text, cls) {
+  const el = document.getElementById('heardText');
+  el.textContent = text;
+  el.className = 'heard-text ' + (cls || '');
+}
+function setFeedback(text) {
+  document.getElementById('feedback').textContent = text;
+}
+function showError(msg) {
+  const banner = document.getElementById('errorBanner');
+  banner.style.display = 'block';
+  banner.textContent = msg;
+}
+
+function showReveal(riddle) {
+  document.getElementById('modalTitle').textContent = riddle.name;
+
+  // แสดงรูปประกอบ (ถ้ามี) — ซ่อนอัตโนมัติถ้าโหลดไฟล์ไม่ได้
+  const imgEl = document.getElementById('modalImage');
+  if (riddle.image) {
+    imgEl.hidden = false;
+    imgEl.alt = riddle.name;
+    imgEl.onerror = () => { imgEl.hidden = true; };
+    imgEl.src = riddle.image;
+  } else {
+    imgEl.hidden = true;
+    imgEl.removeAttribute('src');
+  }
+
+  // preserve line breaks in meaning
+  const mEl = document.getElementById('modalMeaning');
+  mEl.innerHTML = '';
+  riddle.meaning.split('\n').forEach((line, i) => {
+    if (i > 0) mEl.appendChild(document.createElement('br'));
+    mEl.appendChild(document.createTextNode(line));
+  });
+  document.getElementById('revealModal').classList.add('show');
+
+  // Start contemplation gate
+  startContemplation(riddle.meaning.length);
+}
+
+function startContemplation(textLength) {
+  // คำนวณเวลาพิจารณาตามความยาวข้อความ
+  const totalMs = Math.max(MIN_CONTEMPLATION_SEC,
+                  Math.min(MAX_CONTEMPLATION_SEC,
+                           Math.round(textLength / CHARS_PER_SECOND))) * 1000;
+
+  // รีเซ็ตสถานะ
+  contemplationReady = false;
+  const closeBtn = document.getElementById('modalCloseBtn');
+  const gate = document.getElementById('contemplation');
+  const fill = document.getElementById('contemplationFill');
+  closeBtn.classList.remove('ready');
+  gate.classList.remove('done');
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+
+  // ให้ browser อัปเดต DOM ก่อนเริ่ม animation
+  setTimeout(() => {
+    fill.style.transition = 'width ' + (totalMs/1000) + 's linear';
+    fill.style.width = '100%';
+  }, 50);
+
+  // ล้าง timer เก่า (กันกรณีเปิดใหม่ก่อนจบ)
+  if (contemplationTimer) clearTimeout(contemplationTimer);
+
+  contemplationTimer = setTimeout(() => {
+    contemplationReady = true;
+    closeBtn.classList.add('ready');
+    gate.classList.add('done');
+  }, totalMs);
+}
+
+function closeModal(e) {
+  // กดที่กรอบมืด (พื้นหลัง)
+  if (e && e.target.id !== 'revealModal') return;
+  // ระหว่างพิจารณา ไม่ให้ปิด
+  if (!contemplationReady) return;
+
+  document.getElementById('revealModal').classList.remove('show');
+
+  // ตรวจสอบการ "ผ่าน" — ค้นพบครบ REQUIRED_TO_PASS หรือเปล่า
+  const target = Math.min(REQUIRED_TO_PASS, activeIds.length);
+  if (collected.length >= target && !rewardShown) {
+    // ผ่านครั้งแรก → แสดงรางวัล
+    rewardShown = true;
+    saveProgress();
+    setTimeout(() => {
+      document.getElementById('rewardModal').classList.add('show');
+    }, 400);
+  } else if (rewardShown) {
+    // ผ่านแล้ว เจอเพิ่มเป็นโบนัส
+    const bonus = collected.length - target;
+    if (bonus > 0) {
+      setFeedback('ผ่านแล้ว ✓ เจอเพิ่มอันที่ ' + bonus);
+    } else {
+      setFeedback('ผ่านแล้ว ✓ เดินต่อไปก็ได้');
+    }
+  } else {
+    setFeedback('ค้นพบแล้ว ' + collected.length + ' จาก ' + target + ' — เดินต่อไป');
+  }
+}
+</script>
+</body>
+</html>
