@@ -120,6 +120,32 @@
     color: var(--sage-dark);
   }
 
+  .tries-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--soft-ink);
+    letter-spacing: 0.5px;
+  }
+  .tries-dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .tries-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--sage);
+    transition: all 0.4s ease;
+  }
+  .tries-dot.spent {
+    background: transparent;
+    border: 1px solid var(--border);
+  }
+
   .instruction {
     text-align: center;
     color: var(--soft-ink);
@@ -153,6 +179,13 @@
     font-family: inherit;
   }
   .mic-button:active { transform: scale(0.95); }
+  .mic-button.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(1);
+    box-shadow: none;
+  }
+  .mic-button.locked:active { transform: none; }
   .mic-button.listening {
     background: var(--gold);
     box-shadow: 0 0 0 12px rgba(176,138,62,0.2),
@@ -409,6 +442,11 @@
       <span class="progress-count"><span id="foundCount">0</span> / <span id="totalCount">2</span></span>
     </div>
 
+    <div class="tries-display">
+      <span>โอกาส</span>
+      <span class="tries-dots" id="triesDots"></span>
+    </div>
+
     <div class="instruction">
       มองสิ่งรอบตัว แล้วพูดสิ่งที่คิดออกมา
     </div>
@@ -630,7 +668,15 @@ const RIDDLES = [
   }
 ];
 
-const STORAGE_KEY = 'dharmaRiddle_v5';
+const STORAGE_KEY = 'dharmaRiddle_v6';
+
+// ========== ระบบโอกาส ==========
+// ผู้เล่นได้ MAX_TRIES โอกาสต่อรอบ
+//   - พูดแล้วพบปริศนาใหม่ → คืนสิทธิ์เต็ม MAX_TRIES
+//   - พูดผิด หรือ พูดของที่เคยพบแล้ว → -1 โอกาส
+//   - เหลือ 0 → ล็อกไมค์ จนกว่าจะกด "เริ่มใหม่ทั้งหมด"
+// ป้องกันการพูดมั่วๆ ให้ผู้เล่นใช้เวลาเดินดูสวนจริง
+const MAX_TRIES = 5;
 
 // ระยะเวลาอ่านขั้นต่ำ (วินาที) — ปุ่ม "รับไว้" จะปรากฏหลังเวลานี้
 // เพื่อให้ผู้เล่นได้อ่านและซึมซับความหมายก่อนปิด
@@ -654,6 +700,7 @@ const REQUIRED_TO_PASS = 5;
 let collected = [];
 let activeIds = [];      // ชุดปริศนาที่ผู้เล่นคนนี้ได้รับ (สุ่ม)
 let rewardShown = false; // ได้แสดงรางวัล (ครบ 5) ไปแล้วหรือยัง
+let triesLeft = MAX_TRIES; // โอกาสที่เหลือ
 let recognition = null;
 let isListening = false;
 let contemplationReady = false;
@@ -685,6 +732,7 @@ function loadProgress() {
       collected = saved.collected || [];
       activeIds = saved.activeIds || [];
       rewardShown = !!saved.rewardShown;
+      triesLeft = (typeof saved.triesLeft === 'number') ? saved.triesLeft : MAX_TRIES;
     }
     if (!activeIds || activeIds.length === 0) {
       initActiveIds();
@@ -692,12 +740,13 @@ function loadProgress() {
   } catch(e) {
     collected = [];
     rewardShown = false;
+    triesLeft = MAX_TRIES;
     initActiveIds();
   }
 }
 function saveProgress() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({collected, activeIds, rewardShown}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({collected, activeIds, rewardShown, triesLeft}));
   } catch(e) {}
 }
 function updateProgress() {
@@ -707,12 +756,39 @@ function updateProgress() {
   document.getElementById('totalCount').textContent = target;
 }
 
+function updateTriesDisplay() {
+  const container = document.getElementById('triesDots');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < MAX_TRIES; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'tries-dot' + (i >= triesLeft ? ' spent' : '');
+    container.appendChild(dot);
+  }
+}
+
+function lockMic() {
+  const btn = document.getElementById('micBtn');
+  const label = document.getElementById('micLabel');
+  if (btn) btn.classList.add('locked');
+  if (label) label.textContent = 'หมดโอกาส • เริ่มใหม่ด้านล่าง';
+}
+
+function unlockMic() {
+  const btn = document.getElementById('micBtn');
+  const label = document.getElementById('micLabel');
+  if (btn) btn.classList.remove('locked');
+  if (label) label.textContent = 'แตะแล้วพูด';
+}
+
 // =============== SCREEN CONTROL ===============
 function startGame() {
   document.getElementById('introScreen').style.display = 'none';
   document.getElementById('gameScreen').style.display = 'flex';
   loadProgress();
   updateProgress();
+  updateTriesDisplay();
+  if (triesLeft <= 0) lockMic();
   checkSpeechSupport();
 }
 
@@ -720,9 +796,12 @@ function resetGame() {
   if (!confirm('ต้องการเริ่มใหม่ทั้งหมด? ปริศนาที่พบจะถูกลบ และจะได้ชุดปริศนาใหม่')) return;
   collected = [];
   rewardShown = false;
+  triesLeft = MAX_TRIES;
   initActiveIds();  // สุ่มชุดใหม่ — ผู้เล่นจะได้รับปริศนาคนละชุด
   saveProgress();
   updateProgress();
+  updateTriesDisplay();
+  unlockMic();
   setHeard('สิ่งที่คุณพูดจะปรากฏที่นี่', 'empty');
   setFeedback('');
 }
@@ -739,6 +818,10 @@ function checkSpeechSupport() {
 }
 
 function toggleListen() {
+  if (triesLeft <= 0) {
+    setFeedback('หมดโอกาสในรอบนี้ — กด "เริ่มใหม่ทั้งหมด" ด้านล่าง');
+    return;
+  }
   if (isListening) { stopListen(); return; }
   startListen();
 }
@@ -776,7 +859,7 @@ function startListen() {
   recognition.onerror = (event) => {
     isListening = false;
     document.getElementById('micBtn').classList.remove('listening');
-    document.getElementById('micLabel').textContent = 'แตะเพื่อพูด';
+    document.getElementById('micLabel').textContent = (triesLeft <= 0) ? 'หมดโอกาส • เริ่มใหม่ด้านล่าง' : 'แตะแล้วพูด';
     if (event.error === 'not-allowed') {
       showError('กรุณาอนุญาตให้เกมใช้ไมโครโฟน');
     } else if (event.error === 'no-speech') {
@@ -791,7 +874,7 @@ function startListen() {
   recognition.onend = () => {
     isListening = false;
     document.getElementById('micBtn').classList.remove('listening');
-    document.getElementById('micLabel').textContent = 'แตะเพื่อพูด';
+    document.getElementById('micLabel').textContent = (triesLeft <= 0) ? 'หมดโอกาส • เริ่มใหม่ด้านล่าง' : 'แตะแล้วพูด';
   };
 
   try { recognition.start(); }
@@ -832,21 +915,32 @@ function processSpeech(text, allResults) {
     }
   }
 
-  if (bestMatch && bestScore > 0) {
-    if (collected.includes(bestMatch.id)) {
-      setHeard(text, 'match');
-      setFeedback('เคยพบสิ่งนี้แล้ว');
-    } else {
-      collected.push(bestMatch.id);
-      saveProgress();
-      updateProgress();
-      setHeard(text, 'match');
-      setFeedback('');
-      setTimeout(() => showReveal(bestMatch), 500);
-    }
+  if (bestMatch && bestScore > 0 && !collected.includes(bestMatch.id)) {
+    // พบปริศนาใหม่ — คืนสิทธิ์เต็ม
+    collected.push(bestMatch.id);
+    triesLeft = MAX_TRIES;
+    saveProgress();
+    updateProgress();
+    updateTriesDisplay();
+    setHeard(text, 'match');
+    setFeedback('');
+    setTimeout(() => showReveal(bestMatch), 500);
   } else {
-    setHeard(text, 'nomatch');
-    setFeedback('ยังไม่ตรง ลองมองในมุมอื่น');
+    // พูดผิด หรือ พบของที่เคยพบแล้ว → ลดโอกาส 1
+    triesLeft = Math.max(0, triesLeft - 1);
+    saveProgress();
+    updateTriesDisplay();
+    if (bestMatch && collected.includes(bestMatch.id)) {
+      setHeard(text, 'match');
+      setFeedback('เคยพบสิ่งนี้แล้ว — เหลือโอกาส ' + triesLeft);
+    } else {
+      setHeard(text, 'nomatch');
+      setFeedback('ยังไม่ตรง — เหลือโอกาส ' + triesLeft);
+    }
+    if (triesLeft <= 0) {
+      lockMic();
+      setFeedback('หมดโอกาสในรอบนี้ — ลองพักนิ่ง ๆ แล้วกด "เริ่มใหม่ทั้งหมด"');
+    }
   }
 }
 
