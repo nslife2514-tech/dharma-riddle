@@ -433,7 +433,8 @@
         คุณมี <strong>5 โอกาส</strong> ต่อรอบ<br>
         พูดถูก → ได้โอกาสคืนเต็ม 5<br>
         พูดผิด หรือพูดสิ่งที่เคยพบแล้ว → เสีย 1 โอกาส<br>
-        หมดโอกาส → จบรอบทันที
+        หมดโอกาส → จบรอบทันที<br>
+        <span style="display:inline-block;margin-top:6px;color:var(--soft-ink);font-size:13px">เกมจะฟังเฉพาะ <strong>2 คำแรก</strong> ของแต่ละครั้ง</span>
       </p>
     </div>
 
@@ -935,19 +936,36 @@ function stopListen() {
 }
 
 // =============== MATCHING LOGIC ===============
+// ตัดข้อความให้เหลือแค่ N คำแรก ป้องกันการพูดยาวๆ มั่วๆ ให้เข้าคีย์เวิร์ด
+// - ถ้ามีช่องว่าง (Web Speech API บางเครื่องใส่ให้) → split ตามช่องว่าง
+// - ถ้าไม่มีช่องว่าง (ภาษาไทยติดกัน) → ใช้ความยาวอักษรเป็นเกณฑ์ ~12 ตัวอักษร
+const MAX_WORDS_PER_UTTERANCE = 2;
+const MAX_CHARS_FALLBACK = 12;
+
+function trimToFirstWords(text) {
+  if (!text) return '';
+  const trimmed = text.trim();
+  if (/\s/.test(trimmed)) {
+    return trimmed.split(/\s+/).slice(0, MAX_WORDS_PER_UTTERANCE).join(' ');
+  }
+  return trimmed.slice(0, MAX_CHARS_FALLBACK);
+}
+
 function processSpeech(text, allResults) {
-  // gather all alternatives from final results for broader matching
-  let alternatives = [text];
+  // gather all alternatives from final results — แต่ตัดให้เหลือแค่ 2 คำแรก
+  let alternatives = [trimToFirstWords(text)];
   if (allResults) {
     for (let i = 0; i < allResults.length; i++) {
       if (allResults[i].isFinal) {
         for (let j = 0; j < allResults[i].length; j++) {
-          alternatives.push(allResults[i][j].transcript);
+          alternatives.push(trimToFirstWords(allResults[i][j].transcript));
         }
       }
     }
   }
   const combined = alternatives.join(' ').toLowerCase();
+  // ข้อความที่แสดงให้ผู้เล่นเห็น = ส่วนที่เกมเอาไปเช็คจริง
+  const displayText = trimToFirstWords(text);
 
   // find best matching riddle — เฉพาะปริศนาในชุดของผู้เล่นนี้
   let bestMatch = null;
@@ -971,7 +989,7 @@ function processSpeech(text, allResults) {
     saveProgress();
     updateProgress();
     updateTriesDisplay();
-    setHeard(text, 'match');
+    setHeard(displayText, 'match');
     setFeedback('');
     setTimeout(() => showReveal(bestMatch), 500);
   } else {
@@ -980,10 +998,10 @@ function processSpeech(text, allResults) {
     saveProgress();
     updateTriesDisplay();
     if (bestMatch && collected.includes(bestMatch.id)) {
-      setHeard(text, 'match');
+      setHeard(displayText, 'match');
       setFeedback('เคยพบสิ่งนี้แล้ว — เหลือโอกาส ' + triesLeft);
     } else {
-      setHeard(text, 'nomatch');
+      setHeard(displayText, 'nomatch');
       setFeedback('ยังไม่ตรง — เหลือโอกาส ' + triesLeft);
     }
     if (triesLeft <= 0) {
