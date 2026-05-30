@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ตามหาปริศนาธรรม</title>
+<title>ปริศนาในสวน</title>
 <style>
   :root {
     --bg: #f4efe6;
@@ -384,17 +384,17 @@
 
   <!-- ================ INTRO SCREEN ================ -->
   <div id="introScreen">
-    <div class="intro-symbol">☸</div>
-    <div class="intro-title">ตามหาปริศนาธรรม</div>
-    <div class="intro-subtitle">Dharma Riddle Hunt</div>
+    <div class="intro-symbol">🌿</div>
+    <div class="intro-title">ปริศนาในสวน</div>
+    <div class="intro-subtitle">Garden Whispers</div>
 
     <div class="intro-text">
-      <p>เดินช้าๆ ในสวน พิจารณาสิ่งที่เห็น</p>
-      <p style="margin-top:10px">เมื่อพบ "สิ่งที่ดูเหมือนปริศนาธรรม" ให้กดปุ่มไมโครโฟน แล้ว<strong>พูดสิ่งที่คุณคิด</strong>ออกมา</p>
-      <p style="margin-top:10px">หากตรงกับปริศนาที่บันทึกไว้ คำเฉลยจะปรากฏให้คุณอ่าน</p>
+      <p>เดินช้า ๆ ในสวน มองดูสิ่งรอบตัว</p>
+      <p style="margin-top:10px">เมื่อเห็นบางอย่างที่ดึงดูดใจ ให้กดปุ่มไมโครโฟน แล้ว<strong>พูดสิ่งที่คุณคิด</strong>ออกมา</p>
+      <p style="margin-top:10px">ถ้าตรงกับความหมายที่ซ่อนอยู่ บทอ่านจะปรากฏ</p>
     </div>
 
-    <button class="start-btn" onclick="startGame()">เริ่มพิจารณา</button>
+    <button class="start-btn" onclick="startGame()">เริ่มเดินในสวน</button>
   </div>
 
   <!-- ================ GAME SCREEN ================ -->
@@ -402,21 +402,21 @@
     <div id="errorBanner" class="error-banner" style="display:none"></div>
 
     <div class="progress-bar">
-      <span class="progress-text">ปริศนาที่พบ</span>
+      <span class="progress-text">พบแล้ว</span>
       <span class="progress-count"><span id="foundCount">0</span> / <span id="totalCount">2</span></span>
     </div>
 
     <div class="instruction">
-      พิจารณาสิ่งรอบตัว แล้วพูดออกมา
+      มองสิ่งรอบตัว แล้วพูดสิ่งที่คิดออกมา
     </div>
 
     <div class="mic-wrap">
       <button id="micBtn" class="mic-button" onclick="toggleListen()">🎤</button>
-      <div id="micLabel" class="mic-label">แตะเพื่อพูด</div>
+      <div id="micLabel" class="mic-label">แตะแล้วพูด</div>
     </div>
 
     <div id="heardText" class="heard-text empty">
-      เสียงที่คุณพูดจะปรากฏที่นี่
+      สิ่งที่คุณพูดจะปรากฏที่นี่
     </div>
     <div id="feedback" class="feedback"></div>
 
@@ -429,15 +429,15 @@
   <div id="revealModal" class="modal-backdrop" onclick="closeModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-symbol">✦</div>
-      <div class="modal-label">ปริศนาที่ค้นพบ</div>
+      <div class="modal-label">สิ่งที่สวนกระซิบ</div>
       <div id="modalTitle" class="modal-title"></div>
       <img id="modalImage" class="modal-image" alt="" hidden>
       <div id="modalMeaning" class="modal-meaning"></div>
       <div id="contemplation" class="contemplation">
-        <div class="contemplation-text">หายใจช้าๆ พิจารณาความหมาย</div>
+        <div class="contemplation-text">ใช้เวลาอ่านช้า ๆ</div>
         <div class="contemplation-bar"><div id="contemplationFill" class="contemplation-fill"></div></div>
       </div>
-      <button id="modalCloseBtn" class="modal-close" onclick="closeModal()">น้อมรับ</button>
+      <button id="modalCloseBtn" class="modal-close" onclick="closeModal()">รับไว้</button>
     </div>
   </div>
 
@@ -445,16 +445,16 @@
   <div id="rewardModal" class="modal-backdrop">
     <div class="modal">
       <div class="reward-content">
-        <div class="reward-symbol">🪷</div>
+        <div class="reward-symbol">🌿</div>
         <div class="reward-title">ครบจำนวนแล้ว</div>
         <div class="reward-text">
-          คุณได้พิจารณาปริศนาธรรม<br>
-          ครบจำนวนที่ตั้งไว้<br><br>
-          ขอให้สิ่งที่ได้พิจารณา<br>
-          เป็นแสงสว่างนำทางใจ<br><br>
+          คุณเดินผ่านสวน<br>
+          และพบสิ่งที่ซ่อนอยู่<br><br>
+          ขอให้สิ่งที่คุณได้พบวันนี้<br>
+          อยู่กับคุณต่อไป<br><br>
           <span style="font-size:14px;color:var(--soft-ink)">เดินต่อก็ได้ ยังมีปริศนาอื่นรออยู่</span>
         </div>
-        <button class="modal-close ready" onclick="document.getElementById('rewardModal').classList.remove('show')">สาธุ</button>
+        <button class="modal-close ready" onclick="document.getElementById('rewardModal').classList.remove('show')">ขอบคุณ</button>
       </div>
     </div>
   </div>
@@ -629,8 +629,8 @@ const RIDDLES = [
 
 const STORAGE_KEY = 'dharmaRiddle_v5';
 
-// ระยะเวลาพิจารณาขั้นต่ำ (วินาที) — ปุ่ม "น้อมรับ" จะปรากฏหลังเวลานี้
-// เพื่อให้ผู้เล่นได้อ่านและพิจารณาความหมายก่อนปิด
+// ระยะเวลาอ่านขั้นต่ำ (วินาที) — ปุ่ม "รับไว้" จะปรากฏหลังเวลานี้
+// เพื่อให้ผู้เล่นได้อ่านและซึมซับความหมายก่อนปิด
 // คำนวณตามความยาวข้อความ: ขั้นต่ำ 12 วินาที สูงสุด 25 วินาที
 const MIN_CONTEMPLATION_SEC = 12;
 const MAX_CONTEMPLATION_SEC = 25;
@@ -720,7 +720,7 @@ function resetGame() {
   initActiveIds();  // สุ่มชุดใหม่ — ผู้เล่นจะได้รับปริศนาคนละชุด
   saveProgress();
   updateProgress();
-  setHeard('เสียงที่คุณพูดจะปรากฏที่นี่', 'empty');
+  setHeard('สิ่งที่คุณพูดจะปรากฏที่นี่', 'empty');
   setFeedback('');
 }
 
@@ -832,7 +832,7 @@ function processSpeech(text, allResults) {
   if (bestMatch && bestScore > 0) {
     if (collected.includes(bestMatch.id)) {
       setHeard(text, 'match');
-      setFeedback('ปริศนานี้คุณเคยค้นพบแล้ว');
+      setFeedback('เคยพบสิ่งนี้แล้ว');
     } else {
       collected.push(bestMatch.id);
       saveProgress();
@@ -843,7 +843,7 @@ function processSpeech(text, allResults) {
     }
   } else {
     setHeard(text, 'nomatch');
-    setFeedback('ยังไม่ตรงกับปริศนาใด ลองพิจารณาในมุมใหม่');
+    setFeedback('ยังไม่ตรง ลองมองในมุมอื่น');
   }
 }
 
@@ -891,7 +891,7 @@ function showReveal(riddle) {
 }
 
 function startContemplation(textLength) {
-  // คำนวณเวลาพิจารณาตามความยาวข้อความ
+  // คำนวณเวลาอ่านตามความยาวข้อความ
   const totalMs = Math.max(MIN_CONTEMPLATION_SEC,
                   Math.min(MAX_CONTEMPLATION_SEC,
                            Math.round(textLength / CHARS_PER_SECOND))) * 1000;
@@ -925,7 +925,7 @@ function startContemplation(textLength) {
 function closeModal(e) {
   // กดที่กรอบมืด (พื้นหลัง)
   if (e && e.target.id !== 'revealModal') return;
-  // ระหว่างพิจารณา ไม่ให้ปิด
+  // ระหว่างช่วงอ่าน ไม่ให้ปิด
   if (!contemplationReady) return;
 
   document.getElementById('revealModal').classList.remove('show');
@@ -948,7 +948,7 @@ function closeModal(e) {
       setFeedback('ผ่านแล้ว ✓ เดินต่อไปก็ได้');
     }
   } else {
-    setFeedback('ค้นพบแล้ว ' + collected.length + ' จาก ' + target + ' — เดินต่อไป');
+    setFeedback('พบแล้ว ' + collected.length + ' จาก ' + target + ' — เดินต่อไป');
   }
 }
 </script>
